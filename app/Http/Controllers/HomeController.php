@@ -14,7 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Mail\SupportMailManager;
 use Throwable;
+use Mail;
 
 class HomeController extends Controller
 {
@@ -81,7 +83,20 @@ class HomeController extends Controller
     public function submitContactForm(ContactRequest $request)
     {
         try {
-            LandingPageContact::query()->create($request->all());
+            $contact=LandingPageContact::query()->create($request->all());
+
+
+            //send mail to admin
+            $array['view'] = 'emails.support';
+            $array['subject'] = 'Contact Request Recived From Landing Page Form';
+            $array['from'] = env('MAIL_FROM_ADDRESS');
+            $array['content'] = 'Hi. A Contact Request has been created. Please check the Contact Request.';
+            $array['link'] ='#';
+            $array['sender'] = $contact->name;
+            $array['details'] = $contact->message;
+            $support_email='deadman962011@gmail.com';
+            Mail::to($support_email)->queue(new SupportMailManager($array));
+
             $response = generateResponse(status: true, reset_form: true, redirect: route('home'), message: __('general.response_messages.contact_success'));
         } catch (Throwable $e) {
             $response = generateResponse(status: false);
