@@ -95,10 +95,13 @@ class HomeController extends Controller
             $array['sender'] = $contact->name;
             $array['details'] = $contact->message;
             $support_email='deadman962011@gmail.com';
-            Mail::to($support_email)->queue(new SupportMailManager($array));
+            Mail::to($support_email)->send(new SupportMailManager($array));
+
+            dd($support_email);
 
             $response = generateResponse(status: true, reset_form: true, redirect: route('home'), message: __('general.response_messages.contact_success'));
         } catch (Throwable $e) {
+            dd($e);
             $response = generateResponse(status: false);
         }
         return response()->json($response);
